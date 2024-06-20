@@ -2,7 +2,7 @@
 
 ## Setup
 
-Copy `env` to `.env`, the `database.default.*` database settings.
+Copy `env` to `.env`, the `database.default.database,database.default.username,database.default.password` database settings and remove the `#` at the beginning of the lines.
 
 ## Server Requirements
 
