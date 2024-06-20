@@ -10,21 +10,37 @@ class SecretController extends ResourceController
     use ResponseTrait;
     protected $db;
 
-    public function create()
+    public function create($id = 0)
     {
         $this->db = \Config\Database::connect();
         $secretModel = new SecretModel();
 
         $post = $this->request->getPost();
 
-        if (empty($post['secret'])) {
-            return $this->failValidtionErrors("This text will be saved as a secret");
-        }
-        if(empty($post['expireAfterViews']) && $post['expireAfterViews'] < 0) {
-            return $this->failValidationErrors("The secret won't be available after the given number of views. It must be greater than 0.");
-        }
-        if(empty($post['expireAfter']) && $post['expireAfter'] < 0) {
-            return $this->failValidationErrors("The secret won't be available after the given time. The value is provided in minutes. 0 means never expires");
+        $validation = service('validation');
+        $validation->setRules([
+            'secret' => [
+                'rules'  => 'required',
+                'errors' => [
+                    'required' => 'This text will be saved as a secret',
+                ],
+            ],
+            'expireAfterViews' => [
+                'rules'  => 'required',
+                'errors' => [
+                    'required' => "The secret won't be available after the given number of views. It must be greater than 0.",
+                ],
+            ],
+            'expireAfter' => [
+                'rules'  => 'required',
+                'errors' => [
+                    'required' => "The secret won't be available after the given time. The value is provided in minutes. 0 means never expires",
+                ],
+            ],
+        ]);
+
+        if (! $validation->run($post)) {
+            return $this->fail($validation->getErrors(), 400);
         }
 
         $hash = bin2hex(random_bytes(16));
@@ -37,7 +53,7 @@ class SecretController extends ResourceController
             'hash' => $hash,
             'bodytext' => $post['secret'],
             'expires_at' => $expiresAt,
-            'remaining_views' => ((!empty($secret['expireAfterViews']))?$post['expireAfterViews']:null),
+            'remaining_views' => ((!empty($post['expireAfterViews']))?$post['expireAfterViews']:null),
             "created_at" => date("Y-m-d H:i:s")
         ];
 

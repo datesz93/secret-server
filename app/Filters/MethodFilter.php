@@ -13,19 +13,17 @@ class MethodFilter implements FilterInterface
         if (!in_array(strtolower($method), ['post', 'get'])) {
             return \Config\Services::response()
                 ->setStatusCode(405)
-                ->setBody('Invalid input');
+                ->setJSON(['status' => 405, 'message' => 'Invalid input']);
         }
-
-        if ($method === 'post') {
+        if (strtolower($method) === 'post') {
             $contentType = $request->getHeaderLine('Content-Type');
             if (strpos(strtolower($contentType), 'application/x-www-form-urlencoded') !== 0) {
                 return \Config\Services::response()
                     ->setStatusCode(415)
-                    ->setBody('Unsupported Media Type');
+                    ->setJSON(['status' => 415, 'message' => 'Unsupported Media Type']);
             }
         }
     }
-
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
     }
